@@ -21,7 +21,7 @@ public class QueueFullException extends Exception {
     }
 
     public String toString() {
-        return "The queue " + queueNo + " is currently fully occupied.";
+        return "The queue " + queueNo + " is currently fully occupied. Customer added to the waiting queue";
     }
 
 }

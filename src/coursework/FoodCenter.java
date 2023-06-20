@@ -4,6 +4,7 @@
  */
 package coursework;
 
+import coursework.DataStructures.CircularQueue;
 import coursework.Exceptions.InsufficientBurgersException;
 import coursework.Exceptions.LowBurgerException;
 import coursework.Exceptions.QueueEmptyException;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 public class FoodCenter implements Serializable {
 
     private FoodQueue cusQueues[] = new FoodQueue[3];
+    private CircularQueue<Customer> waitingQueue = new CircularQueue<>();
     private final int queueSizes[] = {2, 3, 5};
     public static final int NO_QUEUES = 3;
     public final int INIT_BURGERS = 50;
@@ -48,6 +50,8 @@ public class FoodCenter implements Serializable {
             }
 
             if (min.isFull()) {
+                waitingQueue.enQueue(cus);
+
                 throw new QueueFullException(min.getId());
             }
             if (currNoOfBurgers < cus.getNoOfBurgers()) {
@@ -68,11 +72,13 @@ public class FoodCenter implements Serializable {
     public Customer removeCustomer(int queueNo) {
 
         try {
-
             Customer name = cusQueues[queueNo - 1].removeCustomer();
+            if (!waitingQueue.isEmpty()) {
+                cusQueues[queueNo - 1].addCustomer(waitingQueue.deQueue());
+            }
 
             return name;
-        } catch (QueueEmptyException ex) {
+        } catch (QueueEmptyException | QueueFullException ex) {
             System.out.println(ex);
             return null;
         }
@@ -80,13 +86,13 @@ public class FoodCenter implements Serializable {
     }
 
     public Customer removeCustomer(int queueNo, int loc) {
-
         try {
-
             Customer cus = cusQueues[queueNo - 1].removeCustomer(loc);
-
+            if (!waitingQueue.isEmpty()) {
+                cusQueues[queueNo - 1].addCustomer(waitingQueue.deQueue());
+            }
             return cus;
-        } catch (QueueEmptyException | QueueIndexOutOfBoundsException ex) {
+        } catch (QueueEmptyException | QueueIndexOutOfBoundsException | QueueFullException ex) {
             System.out.println(ex);
             return null;
         }
@@ -104,6 +110,8 @@ public class FoodCenter implements Serializable {
             System.out.println("Queue " + (k + 1));
             cusQueues[k].viewQueue();
         }
+        System.out.println("\t====Waiting Queue====");
+        waitingQueue.displayQueue();
     }
 
     public void displaySortedQueue() {

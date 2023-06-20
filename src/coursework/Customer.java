@@ -37,4 +37,8 @@ public class Customer implements Serializable {
     public int getNoOfBurgers() {
         return this.noOfBurgers;
     }
+
+    public String toString() {
+        return this.firstName + " " + this.secondName + ": " + this.noOfBurgers + " burgers";
+    }
 }
