@@ -18,9 +18,6 @@ import java.util.Scanner;
  */
 public class CourseWork {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         FoodCenter fc = new FoodCenter();
 //        fc.addCustomer(1, "Dinitha");
@@ -50,6 +47,8 @@ public class CourseWork {
                 System.out.println("107 or LPD: Load Program Data from file");
                 System.out.println("108 or STK: View remaining burgers stock");
                 System.out.println("109 or AFS: Add burgers to Stock");
+                System.out.println("110 or IFQ: Calculate Income");
+
                 System.out.println("999 or EXT: Exit the Program");
                 System.out.println("\t------------------------------------");
                 System.out.println("Enter the operation: ");
@@ -66,24 +65,21 @@ public class CourseWork {
                         break;
                     case "102":
                     case "ACQ":
-                        System.out.println("Enter queue number: ");
-                        int queueNo = sc.nextInt();
 
-                        sc.nextLine();
-                        if (queueNo != 1 && queueNo != 2 && queueNo != 3) {
-                            throw new QueueOutOfBoundsException();
-                        }
-                        System.out.println("Enter customer name: ");
+                        System.out.println("Enter customer full name: ");
 
                         String name = sc.nextLine();
+                        String nameArr[] = name.split(" ");
 
-                        fc.addCustomer(queueNo, name);
-
+                        System.out.println("Enter customer order size: ");
+                        int orderSize = sc.nextInt();
+                        fc.addCustomer(new Customer(nameArr[0], nameArr[1], orderSize));
+                        sc.nextLine();
                         break;
                     case "103":
                     case "RCQ":
                         System.out.println("Enter queue number: ");
-                        queueNo = sc.nextInt();
+                        int queueNo = sc.nextInt();
                         if (queueNo != 1 && queueNo != 2 && queueNo != 3) {
                             throw new QueueOutOfBoundsException();
                         }
@@ -150,6 +146,13 @@ public class CourseWork {
                         sc.nextLine();
                         System.out.println("\tRemaining burgers in stock");
                         System.out.println(fc.getCurrBurgers() + " burgers");
+                        break;
+                    case "110":
+                    case "IFQ":
+                        System.out.println("Enter queue number: ");
+                        queueNo = sc.nextInt();
+                        fc.displayIncome(queueNo);
+                        sc.nextLine();
                         break;
                     case "999":
                     case "EXT":

@@ -18,33 +18,45 @@ import java.util.ArrayList;
  */
 public class FoodCenter implements Serializable {
 
-    private ArrayList<String> cusQueues[] = new ArrayList[3];
-    public static final int NO_QUEUES = 3;
+    private FoodQueue cusQueues[] = new FoodQueue[3];
     private final int queueSizes[] = {2, 3, 5};
+    public static final int NO_QUEUES = 3;
     public final int INIT_BURGERS = 50;
-    public final int ORDER_SIZE = 5;
+    public static final float BURGER_PRICE = 650f;
     private int currNoOfBurgers;
 
     public FoodCenter() {
-        cusQueues[0] = new ArrayList<>(2);
-        cusQueues[1] = new ArrayList<>(3);
-        cusQueues[2] = new ArrayList<>(5);
+        cusQueues[0] = new FoodQueue(2, 1);
+        cusQueues[1] = new FoodQueue(3, 2);
+        cusQueues[2] = new FoodQueue(5, 3);
         this.currNoOfBurgers = INIT_BURGERS;
     }
 
-    public void addCustomer(int queueNo, String name) {
+    public void addCustomer(Customer cus) {
 
         try {
 
-            if (isFull(queueNo - 1)) {
-                throw new QueueFullException(queueNo);
+            FoodQueue min = cusQueues[0];
+            float maxEmptySizeRatio = (float) (cusQueues[0].getSize() - cusQueues[0].getNoOfElements()) / cusQueues[0].getSize();
+            for (int i = 1; i < NO_QUEUES; i++) {
+
+                float emptySizeRatio = (float) (cusQueues[i].getSize() - cusQueues[i].getNoOfElements()) / cusQueues[i].getSize();
+                if (emptySizeRatio > maxEmptySizeRatio) {
+                    maxEmptySizeRatio = emptySizeRatio;
+                    min = cusQueues[i];
+                }
             }
-            if (currNoOfBurgers < 5) {
+
+            if (min.isFull()) {
+                throw new QueueFullException(min.getId());
+            }
+            if (currNoOfBurgers < cus.getNoOfBurgers()) {
                 throw new InsufficientBurgersException();
             }
-            cusQueues[queueNo - 1].add(name);
-            currNoOfBurgers -= ORDER_SIZE;
-            System.out.println(name + " successfully added.");
+
+            min.addCustomer(cus);
+            currNoOfBurgers -= cus.getNoOfBurgers();
+            System.out.println(cus.getFullName() + " successfully added.");
             if (currNoOfBurgers <= 10) {
                 throw new LowBurgerException();
             }
@@ -53,51 +65,32 @@ public class FoodCenter implements Serializable {
         }
     }
 
-    public String removeCustomer(int queueNo) {
+    public Customer removeCustomer(int queueNo) {
 
         try {
-            if (isEmpty(queueNo - 1)) {
-                throw new QueueEmptyException(queueNo);
-            }
-            String name = cusQueues[queueNo - 1].remove(0);
-            System.out.println(name + " removed.");
+
+            Customer name = cusQueues[queueNo - 1].removeCustomer();
 
             return name;
         } catch (QueueEmptyException ex) {
             System.out.println(ex);
-            return "";
+            return null;
         }
 
     }
 
-    public String removeCustomer(int queueNo, int loc) {
+    public Customer removeCustomer(int queueNo, int loc) {
 
         try {
-            if (isEmpty(queueNo - 1)) {
-                throw new QueueEmptyException(queueNo);
-            }
 
-            if (loc > cusQueues[queueNo - 1].size() - 1) {
-                throw new QueueIndexOutOfBoundsException();
-            }
-            String name = cusQueues[queueNo - 1].remove(loc);
-            System.out.println(name + " removed!");
-            return name;
+            Customer cus = cusQueues[queueNo - 1].removeCustomer(loc);
+
+            return cus;
         } catch (QueueEmptyException | QueueIndexOutOfBoundsException ex) {
             System.out.println(ex);
-            return "";
+            return null;
         }
 
-    }
-//Expects zero based queue No
-
-    public boolean isEmpty(int queueNo) {
-        return cusQueues[queueNo].isEmpty();
-    }
-//Expects zero based queue No
-
-    public boolean isFull(int queueNo) {
-        return cusQueues[queueNo].size() == queueSizes[queueNo];
     }
 
     public void viewQueues() {
@@ -109,29 +102,22 @@ public class FoodCenter implements Serializable {
 
         for (int k = 0; k < NO_QUEUES; k++) {
             System.out.println("Queue " + (k + 1));
-            int i = 0;
-
-            for (; i < cusQueues[k].size(); i++) {
-                System.out.println("X");
-            }
-            for (int j = i; j < this.queueSizes[k]; j++) {
-                System.out.println("O");
-            }
+            cusQueues[k].viewQueue();
         }
-
     }
 
     public void displaySortedQueue() {
 
-        String temp;
-        ArrayList<String> tempArr = new ArrayList<>(cusQueues[0]);
-        tempArr.addAll(cusQueues[1]);
-        tempArr.addAll(cusQueues[2]);
+        Customer temp;
+        ArrayList<Customer> tempArr = new ArrayList<>();
+        for (int k = 0; k < NO_QUEUES; k++) {
+            tempArr.addAll(cusQueues[k].getQueue());
+        }
         System.out.println("\tAll customers in dictionary order");
         System.out.println("");
         for (int i = 0; i < tempArr.size(); i++) {
             for (int j = 1; j < (tempArr.size() - i); j++) {
-                if (tempArr.get(j - 1).compareTo(tempArr.get(j)) > 0) {
+                if (tempArr.get(j - 1).getFullName().compareTo(tempArr.get(j).getFullName()) > 0) {
                     //swap elements
 
                     temp = tempArr.get(j - 1);
@@ -141,8 +127,8 @@ public class FoodCenter implements Serializable {
 
             }
         }
-        for (String str : tempArr) {
-            System.out.println(str);
+        for (Customer cus : tempArr) {
+            System.out.println(cus.getFullName());
         }
     }
 
@@ -162,6 +148,10 @@ public class FoodCenter implements Serializable {
     public void addBurgers(int qty) {
         currNoOfBurgers += qty;
         System.out.println("Stock updated successfully!");
+    }
+
+    public void displayIncome(int queueNo) {
+        System.out.printf("Income of %d: %.2f\n", queueNo, cusQueues[queueNo - 1].getIncome());
     }
 
 }
